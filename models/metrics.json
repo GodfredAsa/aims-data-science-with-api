@@ -1,0 +1,6 @@
+{
+  "best_model": "Linear Regression",
+  "tuned_rmse": 59213.792328311756,
+  "tuned_mae": 41822.58655291117,
+  "tuned_r2": 0.8902019148636676
+}

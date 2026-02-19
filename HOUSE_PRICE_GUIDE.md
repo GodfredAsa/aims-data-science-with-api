@@ -93,14 +93,29 @@ python -m uvicorn api.predict_api:app --reload --port 8000
 
 ---
 
-## 4. Call the API
+## 4. Use the Dashboard (House Price Predictor)
 
-**POST /predict** — send a JSON body with the same features as in the dataset (no `price`; no `rooms_total` — it is computed as `bedrooms + bathrooms`).
-
-Example with `curl`:
+Open `index.html` in a browser. You can serve it with a simple HTTP server:
 
 ```bash
-curl -X POST "http://127.0.0.1:8000/predict" \
+python -m http.server 8080
+# Then open http://localhost:8080
+```
+
+The **House Price Predictor** card at the top lets you enter house features and click **Get prediction**. It calls the API endpoint `POST /predict_explain`, which returns both the predicted price and **reasons** (feature importance or coefficients). Ensure the API is running on port 8000; the frontend uses `http://127.0.0.1:8000` by default.
+
+---
+
+## 5. Call the API Directly
+
+**POST /predict** — returns only `predicted_price`.
+
+**POST /predict_explain** — returns `predicted_price` and `reasons` (explanations based on feature importance or coefficients).
+
+Example with `curl` (use `/predict` or `/predict_explain` for price + reasons):
+
+```bash
+curl -X POST "http://127.0.0.1:8000/predict_explain" \
   -H "Content-Type: application/json" \
   -d '{
     "area_sqm": 120,
@@ -114,10 +129,15 @@ curl -X POST "http://127.0.0.1:8000/predict" \
   }'
 ```
 
-Example response:
+Example response (with `/predict_explain`):
 
 ```json
-{"predicted_price": 345678.12}
+{
+  "predicted_price": 345678.12,
+  "reasons": [
+    {"feature": "area_sqm", "label": "Area (m²)", "reason": "Larger area generally increases price.", "importance_pct": 25.3, "effect": "positive"}
+  ]
+}
 ```
 
 **Allowed values for `location`:** `"Downtown"`, `"Suburb"`, `"Rural"`, `"Midtown"`, `"Waterfront"` (same as in the training data).
@@ -145,18 +165,18 @@ print(resp.json())  # {"predicted_price": 345678.12}
 
 ---
 
-## 5. Order of Execution Summary
+## 6. Order of Execution Summary
 
 | Step | Command / Action |
 |------|-------------------|
 | 1 | `python generate_house_data.py` → creates `data/house_prices.csv` |
 | 2 | `python train_house_price_model.py` → EDA, clean, train, tune, save to `models/` |
 | 3 | `uvicorn api.predict_api:app --reload --port 8000` → start API |
-| 4 | `POST /predict` with JSON body → get `predicted_price` |
+| 4 | Open dashboard (`index.html` via HTTP server) and use House Price Predictor, or `POST /predict` / `POST /predict_explain` with JSON |
 
 ---
 
-## 6. Files Reference
+## 7. Files Reference
 
 | File | Purpose |
 |------|---------|
@@ -166,7 +186,8 @@ print(resp.json())  # {"predicted_price": 345678.12}
 | `train_house_price_model.py` | Full pipeline: load → EDA → clean → encode → 3 models → tune best → save |
 | `models/house_price_artifacts.joblib` | Saved best model + preprocessor + feature list |
 | `models/metrics.json` | Best model name and tuned metrics |
-| `api/predict_api.py` | FastAPI app: load artifacts, expose POST /predict |
+| `api/predict_api.py` | FastAPI app: POST /predict, POST /predict_explain (price + reasons) |
+| `index.html` | Dashboard with House Price Predictor (calls API, shows price + reasons) |
 | `HOUSE_PRICE_GUIDE.md` | This user guide |
 
 For more detail on the ML steps (problem definition, data collection, EDA, cleaning, encoding, feature engineering, model selection, training, testing, fine-tuning, and API), see **HOUSE_PRICE_ML_PLAN.md**.

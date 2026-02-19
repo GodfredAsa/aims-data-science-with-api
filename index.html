@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --card: #ffffff;
+      --text: #1d1d1f;
+      --text-muted: #6e6e73;
+      --accent: #6366f1;
+      --accent-light: #818cf8;
+      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      --sidebar: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);
+      --shadow: 0 2px 12px rgba(0,0,0,0.06);
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+    [data-theme="dark"] {
+      --bg: #1a1a1c;
+      --card: #2d2d30;
+      --text: #f5f5f7;
+      --text-muted: #a1a1a6;
+      --shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .app { display: flex; min-height: 100vh; }
+    /* Sidebar */
+    .sidebar {
+      width: 72px;
+      background: var(--sidebar);
+      border-radius: 0 24px 24px 0;
+      padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      flex-shrink: 0;
+    }
+    .sidebar-icon {
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,0.9);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: background 0.2s;
+    }
+    .sidebar-icon:hover { background: rgba(255,255,255,0.15); }
+    .sidebar-icon svg { width: 22px; height: 22px; }
+    /* Main */
+    .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    /* Header */
+    .header {
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    [data-theme="dark"] .header { border-color: rgba(255,255,255,0.08); }
+    .tabs { display: flex; gap: 4px; }
+    .tab {
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 14px; font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      transition: all 0.2s;
+    }
+    .tab:hover { color: var(--text); background: rgba(0,0,0,0.04); }
+    [data-theme="dark"] .tab:hover { background: rgba(255,255,255,0.06); }
+    .tab.active { color: var(--accent); background: rgba(99,102,241,0.12); }
+    .tab svg { width: 18px; height: 18px; opacity: 0.8; }
+    .search-wrap { flex: 1; min-width: 200px; max-width: 400px; }
+    .search-wrap input {
+      width: 100%;
+      padding: 10px 16px 10px 40px;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: var(--radius);
+      background: var(--card);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    [data-theme="dark"] .search-wrap input { border-color: rgba(255,255,255,0.1); }
+    .search-wrap input::placeholder { color: var(--text-muted); }
+    .search-wrap input:focus { border-color: var(--accent); }
+    .search-wrap { position: relative; }
+    .search-wrap .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+    .header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .theme-toggle {
+      display: flex;
+      background: var(--card);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+    [data-theme="dark"] .theme-toggle { border-color: rgba(255,255,255,0.1); }
+    .theme-toggle span {
+      padding: 6px 12px;
+      font-size: 12px; font-weight: 500;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .theme-toggle span.active { background: var(--accent); color: #fff; }
+    .btn-icon { width: 40px; height: 40px; border-radius: var(--radius-sm); border: none; background: var(--card); color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .btn-icon:hover { color: var(--text); background: rgba(0,0,0,0.04); }
+    .btn { padding: 10px 18px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(0,0,0,0.1); background: var(--card); color: var(--text); transition: all 0.2s; }
+    [data-theme="dark"] .btn { border-color: rgba(255,255,255,0.15); }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-primary:hover { background: var(--accent-light); border-color: var(--accent-light); }
+    /* Content */
+    .content { padding: 24px 32px; flex: 1; overflow-auto; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      transition: box-shadow 0.2s;
+    }
+    .card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    [data-theme="dark"] .card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .card-title { font-size: 16px; font-weight: 600; }
+    .card-header .link { font-size: 13px; color: var(--accent); cursor: pointer; font-weight: 500; }
+    .welcome-section { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+    .welcome-card { grid-column: 1; }
+    .welcome-card h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .welcome-card .sub { font-size: 20px; font-weight: 600; margin: 12px 0 8px; }
+    .welcome-card .desc { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
+    .avatars { display: flex; margin-bottom: 8px; }
+    .avatars span { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); border: 2px solid var(--card); margin-left: -8px; }
+    .avatars span:first-child { margin-left: 0; }
+    .add-card { border: 2px dashed rgba(0,0,0,0.12); border-radius: var(--radius); min-height: 140px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); font-size: 14px; transition: all 0.2s; }
+    [data-theme="dark"] .add-card { border-color: rgba(255,255,255,0.15); }
+    .add-card:hover { border-color: var(--accent); color: var(--accent); }
+    .add-card .plus { font-size: 32px; margin-bottom: 4px; }
+    .feature-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .feature-card { text-align: center; padding: 24px 16px; }
+    .feature-card .icon-wrap { width: 56px; height: 56px; margin: 0 auto 12px; border-radius: var(--radius); background: rgba(99,102,241,0.1); display: flex; align-items: center; justify-content: center; color: var(--accent); }
+    .feature-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .feature-card p { font-size: 13px; color: var(--text-muted); }
+    .notif-item { padding: 14px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+    [data-theme="dark"] .notif-item { border-color: rgba(255,255,255,0.06); }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item .title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .notif-item .meta { font-size: 12px; color: var(--text-muted); }
+    .notif-item .actions { display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end; }
+    .notif-item .reply-input { width: 100%; padding: 8px 12px; margin-top: 8px; border-radius: var(--radius-sm); border: 1px solid rgba(0,0,0,0.08); background: var(--bg); font-size: 13px; color: var(--text); }
+    [data-theme="dark"] .notif-item .reply-input { border-color: rgba(255,255,255,0.1); }
+    .assignment-item { padding: 14px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+    [data-theme="dark"] .assignment-item { border-color: rgba(255,255,255,0.06); }
+    .assignment-item:last-child { border-bottom: none; }
+    .assignment-item .title { font-size: 14px; font-weight: 600; }
+    .assignment-item .desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 500; }
+    .tag-high { background: #fee2e2; color: #b91c1c; }
+    .tag-pill { background: rgba(0,0,0,0.06); color: var(--text-muted); margin-right: 6px; margin-top: 8px; }
+    [data-theme="dark"] .tag-pill { background: rgba(255,255,255,0.1); }
+    .btn-add { width: 100%; justify-content: center; margin-top: 12px; }
+    .calendar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .calendar-nav { display: flex; gap: 8px; }
+    .calendar-nav button { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--bg); color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .calendar-nav button:hover { background: var(--accent); color: #fff; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 13px; }
+    .cal-day { padding: 8px; color: var(--text-muted); font-weight: 500; }
+    .cal-date { padding: 10px; border-radius: 50%; cursor: pointer; }
+    .cal-date:hover { background: rgba(99,102,241,0.15); }
+    .cal-date.active { background: var(--accent); color: #fff; }
+    .cal-events { margin-top: 16px; }
+    .cal-event { padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; align-items: flex-start; gap: 12px; font-size: 13px; }
+    [data-theme="dark"] .cal-event { border-color: rgba(255,255,255,0.06); }
+    .cal-event .time { font-weight: 600; color: var(--text-muted); min-width: 90px; }
+    .cal-event .title { font-weight: 500; }
+    .cal-event .detail { font-size: 12px; color: var(--text-muted); }
+    .task-item { padding: 14px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+    [data-theme="dark"] .task-item { border-color: rgba(255,255,255,0.06); }
+    .task-item:last-child { border-bottom: none; }
+    .task-item .name { font-size: 14px; font-weight: 600; }
+    .task-item .meta { font-size: 12px; color: var(--text-muted); margin: 4px 0 8px; }
+    .progress-bar { height: 6px; background: rgba(0,0,0,0.08); border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+    [data-theme="dark"] .progress-bar { background: rgba(255,255,255,0.1); }
+    .progress-fill { height: 100%; background: var(--accent-gradient); border-radius: 3px; transition: width 0.3s; }
+    .task-item .badge { font-size: 12px; color: var(--text-muted); }
+    .premium-card { background: var(--accent-gradient); color: #fff; padding: 24px; position: relative; overflow: hidden; }
+    .premium-card .illu { position: absolute; top: 16px; right: 16px; font-size: 48px; opacity: 0.5; }
+    .premium-card h3 { font-size: 18px; margin-bottom: 8px; }
+    .premium-card p { font-size: 13px; opacity: 0.9; margin-bottom: 16px; }
+    .premium-card .btn { background: #fff; color: var(--accent); border: none; }
+    .premium-card .btn:hover { background: rgba(255,255,255,0.9); }
+    .progress-circles { display: flex; gap: 20px; flex-wrap: wrap; }
+    .circle-wrap { text-align: center; }
+    .circle-wrap .circle { width: 80px; height: 80px; border-radius: 50%; background: conic-gradient(var(--accent) 0%, var(--accent) var(--p), rgba(99,102,241,0.2) var(--p), rgba(99,102,241,0.2) 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; }
+    .circle-wrap .circle-inner { width: 64px; height: 64px; border-radius: 50%; background: var(--card); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; }
+    .circle-wrap .label { font-size: 12px; color: var(--text-muted); }
+    .circle-wrap .btn { margin-top: 8px; font-size: 12px; padding: 6px 12px; }
+    .board-card .card-title { margin-bottom: 8px; }
+    .board-card .detail { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+    .board-card .btns { display: flex; gap: 8px; }
+    /* House Price Predictor */
+    .predictor-card { grid-column: 1 / -1; margin-bottom: 24px; }
+    .predictor-row { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+    .predictor-form { flex: 1; min-width: 280px; }
+    .predictor-form .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .predictor-form label { display: block; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 4px; }
+    .predictor-form input, .predictor-form select { width: 100%; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid rgba(0,0,0,0.1); background: var(--card); color: var(--text); font-size: 14px; }
+    [data-theme="dark"] .predictor-form input, [data-theme="dark"] .predictor-form select { border-color: rgba(255,255,255,0.15); }
+    .predictor-results { flex: 1; min-width: 280px; }
+    .predictor-results .price { font-size: 28px; font-weight: 700; color: var(--accent); margin-bottom: 12px; }
+    .predictor-results .reasons { list-style: none; }
+    .predictor-results .reasons li { padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 13px; display: flex; align-items: flex-start; gap: 8px; }
+    [data-theme="dark"] .predictor-results .reasons li { border-color: rgba(255,255,255,0.06); }
+    .predictor-results .reasons .tag { font-size: 11px; padding: 2px 6px; border-radius: 4px; background: rgba(99,102,241,0.15); color: var(--accent); flex-shrink: 0; }
+    .predictor-loading { color: var(--text-muted); font-size: 14px; }
+    .predictor-error { color: #dc2626; font-size: 14px; }
+    @media (max-width: 1200px) {
+      .welcome-section { grid-template-columns: 1fr; }
+      .feature-cards { grid-template-columns: 1fr; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-icon" title="Dashboard">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke-width="2"/></svg>
+      </div>
+      <div class="sidebar-icon" title="Profile"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3" stroke-width="2"/><path stroke-width="2" d="M5 20a7 7 0 0114 0"/></svg></div>
+      <div class="sidebar-icon" title="Notifications"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-12 0v3.159c0 .538-.214 1.055-.595 1.436L5 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg></div>
+      <div class="sidebar-icon" title="Calendar"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke-width="2"/></svg></div>
+      <div class="sidebar-icon" title="Documents"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg></div>
+      <div class="sidebar-icon" title="Edit"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></div>
+      <div class="sidebar-icon" title="Tags"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg></div>
+      <div class="sidebar-icon" title="Refresh"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
+    </aside>
+    <div class="main">
+      <header class="header">
+        <div class="tabs">
+          <div class="tab active" data-tab="dashboard">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke-width="2"/></svg>
+            Dashboard
+          </div>
+          <div class="tab" data-tab="workflows">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+            Workflows
+          </div>
+          <div class="tab" data-tab="integrations">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+            Integrations
+          </div>
+        </div>
+        <div class="search-wrap">
+          <span class="search-icon">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke-width="2"/><path stroke-width="2" d="M21 21l-4.35-4.35"/></svg>
+          </span>
+          <input type="text" id="search" placeholder="Search or type command" />
+        </div>
+        <div class="header-right">
+          <div class="theme-toggle">
+            <span class="theme-opt active" data-theme="light">Light</span>
+            <span class="theme-opt" data-theme="dark">Dark</span>
+          </div>
+          <button class="btn-icon" title="Settings">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+          </button>
+          <button class="btn" id="btnExport"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Export data <span style="font-size:10px;background:var(--accent);color:#fff;padding:2px 6px;border-radius:4px;margin-left:4px;">x</span></button>
+          <button class="btn btn-primary" id="btnAddBoard"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 4v16m8-8H4"/></svg> Add new board</button>
+        </div>
+      </header>
+      <div class="content">
+        <section class="card predictor-card">
+          <div class="card-header"><span class="card-title">House Price Predictor</span></div>
+          <div class="predictor-row">
+            <div class="predictor-form">
+              <div class="form-grid">
+                <div><label for="pf-area">Area (m²)</label><input type="number" id="pf-area" value="120" min="20" max="500" step="5" /></div>
+                <div><label for="pf-bedrooms">Bedrooms</label><input type="number" id="pf-bedrooms" value="3" min="1" max="8" /></div>
+                <div><label for="pf-bathrooms">Bathrooms</label><input type="number" id="pf-bathrooms" value="2" min="1" max="5" /></div>
+                <div><label for="pf-age">Age (years)</label><input type="number" id="pf-age" value="10" min="0" max="100" /></div>
+                <div><label for="pf-location">Location</label><select id="pf-location"><option value="Downtown">Downtown</option><option value="Suburb" selected>Suburb</option><option value="Rural">Rural</option><option value="Midtown">Midtown</option><option value="Waterfront">Waterfront</option></select></div>
+                <div><label>Garage</label><select id="pf-garage"><option value="0">No</option><option value="1" selected>Yes</option></select></div>
+                <div><label>Garden</label><select id="pf-garden"><option value="0">No</option><option value="1" selected>Yes</option></select></div>
+                <div><label>Near school</label><select id="pf-school"><option value="0">No</option><option value="1" selected>Yes</option></select></div>
+              </div>
+              <button class="btn btn-primary" id="btnPredict">Get prediction</button>
+            </div>
+            <div class="predictor-results">
+              <div id="predictorOutput">
+                <p class="predictor-loading" id="predictorMsg">Enter values and click "Get prediction".</p>
+                <div id="predictorPrice" style="display:none;"></div>
+                <ul class="reasons" id="predictorReasons" style="display:none;"></ul>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="welcome-section">
+          <div class="welcome-card card">
+            <h1>Hi, James! <span aria-hidden="true">👋</span></h1>
+            <div class="avatars"><span></span><span></span></div>
+            <p class="sub">What are your plans for today?</p>
+            <p class="desc">This platform is designed to revolutionize the way you organize and access your notes.</p>
+            <div class="add-card" id="addNoteCard">
+              <div><span class="plus">+</span><br />Add new</div>
+            </div>
+          </div>
+          <div class="card" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:center;">
+            <div class="feature-card">
+              <div class="icon-wrap"><svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke-width="2"/></svg></div>
+              <h3>Stay organized</h3>
+              <p>A clear structure for your notes</p>
+            </div>
+            <div class="feature-card">
+              <div class="icon-wrap"><svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/><path d="M9 4v4h4" stroke-width="2"/></svg></div>
+              <h3>Sync your notes</h3>
+              <p>Ensure that notes are synced</p>
+            </div>
+            <div class="feature-card">
+              <div class="icon-wrap"><svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke-width="2"/></svg></div>
+              <h3>Collaborate and share</h3>
+              <p>Share notes with colleagues</p>
+            </div>
+          </div>
+        </section>
+
+        <div class="grid-3" style="margin-bottom:24px;">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Notifications</span><span class="link" id="clearNotif">Clear</span></div>
+            <div class="notif-item">
+              <div class="title">Upcoming event • Landing design meeting</div>
+              <div class="meta">Timer 120 min • Sat, 10 May • 9 AM - 11:45 AM</div>
+              <div class="actions">
+                <button class="btn-icon" title="Options">⋮</button>
+                <button class="btn-icon" title="Delete">🗑</button>
+                <button class="btn-icon" title="Edit">✎</button>
+              </div>
+            </div>
+            <div class="notif-item">
+              <div class="title">Message | Product design</div>
+              <div class="meta">Message from Ken Smith</div>
+              <input type="text" class="reply-input" placeholder="Reply..." />
+              <div class="actions"><button class="btn-icon" title="Options">⋮</button></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Assignments</span><span class="link">Edit</span><button class="btn-icon">⋮</button></div>
+            <div class="assignment-item">
+              <div class="title">Motion design Logo</div>
+              <div class="desc">Design a packaging concept for a new product <span class="tag tag-high">High</span></div>
+              <span class="tag tag-pill">Package design</span>
+              <span class="tag tag-pill">Rachel Lee</span>
+            </div>
+            <button class="btn btn-add" id="addAssignment"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 4v16m8-8H4"/></svg> Add new assignment</button>
+          </div>
+          <div class="card">
+            <div class="calendar-header">
+              <span class="card-title" id="calTitle">May 2021</span>
+              <div class="calendar-nav">
+                <button type="button" id="calPrev" aria-label="Previous month">‹</button>
+                <button type="button" id="calNext" aria-label="Next month">›</button>
+              </div>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+            <div class="cal-events">
+              <div class="cal-event"><span class="time">04:30-05:00 PM</span><div><div class="title">Team meeting</div><div class="detail">12:00 - 12:30 UX/UI design</div></div><button class="btn-icon">⋮</button></div>
+              <div class="cal-event"><span class="time">11:30-12:30 PM</span><div><div class="title">Meeting with new client</div><div class="detail">12:30 - 01:30 PM Job interview</div></div><button class="btn-icon">⋮</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Today tasks</span><div style="display:flex;align-items:center;gap:8px;"><span class="avatars" style="margin:0;"><span></span><span></span></span><span class="link">Edit</span><span class="link">Share</span><button class="btn-icon">⋮</button></div></div>
+            <div class="task-item">
+              <div class="name">Conduct research</div>
+              <div class="meta">4 May, 09:20 AM • Duration 02 h 45 m</div>
+              <div class="progress-bar"><div class="progress-fill" style="width:90%" data-pct="90"></div></div>
+              <span class="badge">4 • 16</span>
+            </div>
+            <div class="task-item">
+              <div class="name">Schedule a meeting</div>
+              <div class="meta">14 May, 12:45 AM • Duration 06 h 55 m</div>
+              <div class="progress-bar"><div class="progress-fill" style="width:50%" data-pct="50"></div></div>
+              <span class="badge">4 • 3 June</span>
+            </div>
+            <div class="task-item">
+              <div class="name">Send out reminders</div>
+              <div class="meta">21 May, 10:30 AM • Duration 01 h 30 m</div>
+              <div class="progress-bar"><div class="progress-fill" style="width:10%" data-pct="10"></div></div>
+              <span class="badge">4 • 3 June</span>
+            </div>
+          </div>
+          <div class="card premium-card">
+            <span class="illu" aria-hidden="true">🎁</span>
+            <h3>Go premium!</h3>
+            <p>Gain access to a range of benefits designed to enhance your user experience.</p>
+            <button class="btn" id="findOutMore">Find out more</button>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-header"><span class="card-title">Progress</span></div>
+              <div class="progress-circles">
+                <div class="circle-wrap">
+                  <div class="circle" style="--p: 90%"><div class="circle-inner">90%</div></div>
+                  <div class="label">DATA RESEARCH Marketing</div>
+                  <div class="label">You marked 5/5 All assignments are done!</div>
+                </div>
+                <div class="circle-wrap">
+                  <div class="circle" style="--p: 65%"><div class="circle-inner">65%</div></div>
+                  <div class="label">UX/UI DESIGN Typography</div>
+                  <div class="label">2 assignments left</div>
+                  <button class="btn btn-primary">Check</button>
+                </div>
+              </div>
+            </div>
+            <div class="card board-card">
+              <div class="card-header"><span class="card-title">Board meeting</span><span class="link">Edit</span></div>
+              <div class="detail">March 24 at 4:00 PM</div>
+              <div class="detail">Meeting with John Smith, 4th floor, room 159</div>
+              <div class="btns">
+                <button class="btn" id="reschedule">Reschedule</button>
+                <button class="btn btn-primary" id="acceptInvite">Accept Invite</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function() {
+      const themeKey = 'dashboard-theme';
+      const themeOpts = document.querySelectorAll('.theme-opt');
+      function setTheme(name) {
+        document.documentElement.setAttribute('data-theme', name === 'dark' ? 'dark' : '');
+        themeOpts.forEach(el => el.classList.toggle('active', el.dataset.theme === name));
+        try { localStorage.setItem(themeKey, name); } catch (e) {}
+      }
+      themeOpts.forEach(el => el.addEventListener('click', () => setTheme(el.dataset.theme)));
+      const saved = localStorage.getItem(themeKey);
+      if (saved) setTheme(saved);
+
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          console.log('Tab:', tab.dataset.tab);
+        });
+      });
+
+      document.getElementById('search').addEventListener('input', function() {
+        if (this.value.trim()) console.log('Search:', this.value);
+      });
+      document.getElementById('search').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') console.log('Search submit:', this.value);
+      });
+
+      document.getElementById('btnExport').addEventListener('click', () => alert('Export data clicked'));
+      document.getElementById('btnAddBoard').addEventListener('click', () => alert('Add new board clicked'));
+      document.getElementById('addNoteCard').addEventListener('click', () => alert('Add new note'));
+      document.getElementById('clearNotif').addEventListener('click', () => alert('Clear notifications'));
+      document.getElementById('addAssignment').addEventListener('click', () => alert('Add new assignment'));
+      document.getElementById('findOutMore').addEventListener('click', () => alert('Find out more about premium'));
+      document.getElementById('reschedule').addEventListener('click', () => alert('Reschedule meeting'));
+      document.getElementById('acceptInvite').addEventListener('click', () => alert('Accept invite clicked'));
+
+      const API_BASE = 'http://127.0.0.1:8000';
+      const msgEl = document.getElementById('predictorMsg');
+      const priceEl = document.getElementById('predictorPrice');
+      const reasonsEl = document.getElementById('predictorReasons');
+      document.getElementById('btnPredict').addEventListener('click', async () => {
+        const payload = {
+          area_sqm: parseFloat(document.getElementById('pf-area').value) || 120,
+          bedrooms: parseInt(document.getElementById('pf-bedrooms').value, 10) || 3,
+          bathrooms: parseInt(document.getElementById('pf-bathrooms').value, 10) || 2,
+          age_years: parseInt(document.getElementById('pf-age').value, 10) || 10,
+          location: document.getElementById('pf-location').value || 'Suburb',
+          has_garage: parseInt(document.getElementById('pf-garage').value, 10) || 0,
+          has_garden: parseInt(document.getElementById('pf-garden').value, 10) || 0,
+          near_school: parseInt(document.getElementById('pf-school').value, 10) || 0,
+        };
+        msgEl.textContent = 'Loading...';
+        msgEl.className = 'predictor-loading';
+        priceEl.style.display = 'none';
+        reasonsEl.style.display = 'none';
+        try {
+          const res = await fetch(API_BASE + '/predict_explain', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || 'Request failed');
+          msgEl.style.display = 'none';
+          priceEl.style.display = 'block';
+          priceEl.innerHTML = '<span class="price">Predicted price: $' + data.predicted_price.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + '</span>';
+          if (data.reasons && data.reasons.length) {
+            reasonsEl.style.display = 'block';
+            reasonsEl.innerHTML = data.reasons.map(r => '<li><span class="tag">' + (r.effect || '') + '</span>' + (r.label || r.feature) + ': ' + (r.reason || '') + '</li>').join('');
+          }
+        } catch (e) {
+          msgEl.style.display = 'block';
+          msgEl.textContent = 'Error: ' + (e.message || 'Could not reach API. Is it running on ' + API_BASE + '?');
+          msgEl.className = 'predictor-error';
+        }
+      });
+
+      let calDate = new Date(2021, 4, 1);
+      const calTitle = document.getElementById('calTitle');
+      const calGrid = document.getElementById('calGrid');
+      const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      function renderCalendar() {
+        const y = calDate.getFullYear(), m = calDate.getMonth();
+        calTitle.textContent = new Date(y, m).toLocaleString('default', { month: 'long', year: 'numeric' });
+        const first = new Date(y, m, 1);
+        const start = first.getDay() === 0 ? 6 : first.getDay() - 1;
+        const daysInMonth = new Date(y, m + 1, 0).getDate();
+        let html = days.map(d => `<div class="cal-day">${d}</div>`).join('');
+        for (let i = 0; i < start; i++) html += '<div class="cal-date"></div>';
+        for (let d = 1; d <= daysInMonth; d++) {
+          const is18 = (m === 4 && d === 18);
+          html += `<div class="cal-date${is18 ? ' active' : ''}" data-date="${d}">${d}</div>`;
+        }
+        calGrid.innerHTML = html;
+        calGrid.querySelectorAll('.cal-date[data-date]').forEach(cell => {
+          cell.addEventListener('click', () => {
+            calGrid.querySelectorAll('.cal-date').forEach(c => c.classList.remove('active'));
+            cell.classList.add('active');
+          });
+        });
+      }
+      document.getElementById('calPrev').addEventListener('click', () => { calDate.setMonth(calDate.getMonth() - 1); renderCalendar(); });
+      document.getElementById('calNext').addEventListener('click', () => { calDate.setMonth(calDate.getMonth() + 1); renderCalendar(); });
+      renderCalendar();
+    })();
+  </script>
+</body>
+</html>

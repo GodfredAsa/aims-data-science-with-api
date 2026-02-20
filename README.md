@@ -53,6 +53,9 @@ python-basics-aims/
 ## Quick Start
 
 ```bash
+python -m venv myenv
+# Activate
+source myenv\Scripts\activate
 # 1. Install dependencies
 pip install -r requirements.txt
 
